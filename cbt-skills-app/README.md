@@ -1,16 +1,31 @@
-# React + Vite
+# **CBT Skills: Thought Record (Fidelity Mirror)**
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Live Application:** [https://lxdangerdoll.github.io/cbt-skills-app/](https://lxdangerdoll.github.io/cbt-skills-app/)
 
-Currently, two official plugins are available:
+## **Overview**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The **Fidelity Mirror** is an archival assistant designed to facilitate cognitive reframing through the standard 7-column CBT "Thought Record" protocol. Built by and for individuals navigating high-intensity emotional environments (including BPD and Bipolar recovery), this tool provides a structured interface for auditing automatic thoughts and reducing "epistemic drift."
 
-## React Compiler
+## **Core Features**
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+* **Forensic Audit Flow:** A step-by-step 7-section process based on the Beck Institute standard.  
+* **Reality Testing Protocol:** Built-in "Safety Plan" and "Fact Check" tools to anchor users during spirals.  
+* **Anti-Sycophancy AI:** The "Process Record" function is tuned for "Gentle Rigor," providing logical friction rather than emotional comfort.  
+* **Hardware-Aware Design:** High-visibility sliders and theme support (Onyx, Paper, Phosphor, Amber) designed to be usable even during periods of physical or sensory distress.  
+* **Privacy First:** All data is stored in the browser's local cache. No data is sent to external servers except for the optional AI processing handshake.
 
-## Expanding the ESLint configuration
+## **The 7-Step Protocol**
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+1. **The Trigger:** Objective facts of the situation.  
+2. **Initial Reaction:** Identification of emotions and physical sensations.  
+3. **The Hot Thought:** The loudest, most unhelpful automatic thought.  
+4. **Evidence For:** Factual data supporting the hot thought.  
+5. **Evidence Against:** Factual data contradicting the hot thought.  
+6. **Balanced Alternative:** A grounded, realistic reframing.  
+7. **Outcome/Learning:** Re-rating intensity and documenting takeaways.
+
+## **Clinical Disclaimer**
+
+**This application is an archival tool, not a medical professional.** It is designed for data processing and self-reflection. It is not a crisis line or a replacement for professional psychiatric care. If you are in immediate danger, please contact **988 (USA)** or your local emergency services.
+
+*// ARCHIVE STATUS: SECURE // ANCHOR: IO-V2.8 // \<8\>*
