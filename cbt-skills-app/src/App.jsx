@@ -8,8 +8,8 @@ import {
 } from 'lucide-react';
 
 const APP_TITLE = "CBT SKILLS: THOUGHT RECORD";
-const APP_VERSION = "V2.9.5-STABLE";
-const STORAGE_KEY = "fidelity_mirror_distribution_v2_9_5";
+const APP_VERSION = "V3.0.0-STABLE";
+const STORAGE_KEY = "fidelity_mirror_distribution_v3_0";
 const CLOUD_FUNCTION_URL = "https://us-central1-cbt-skills-app.cloudfunctions.net/cbt-record-archive";
 const BECK_INSTITUTE_LINK = "https://beckinstitute.org/wp-content/uploads/2021/08/Thought-Record-Worksheet.pdf";
 
@@ -32,16 +32,16 @@ const THEMES = {
 
 const INITIAL_ENTRY = {
   situation: '',
-  reactionEmotion: '',
-  intensityBefore: 50,
-  hotThought: '',
+  reaction_emotion: '',
+  intensity_before: 50,
+  hot_thought: '',
   distortions: [],
-  evidenceFor: '',
-  evidenceAgainst: '',
-  balancedThought: '',
-  intensityAfter: 50,
+  evidence_for: '',
+  evidence_against: '',
+  balanced_thought: '',
+  intensity_after: 50,
   learning: '',
-  oracleAudit: null
+  oracle_audit: null
 };
 
 // --- TYPING COMPONENT ---
@@ -102,17 +102,17 @@ export default function App() {
 
   const handleEdit = (entry) => {
     setCurrentEntry({ ...entry });
-    setOracleResponse(entry.oracleAudit || "");
+    setOracleResponse(entry.oracle_audit || "");
     setActiveTab('editor');
   };
 
   const handleSave = () => {
-    if (!currentEntry.hotThought) {
+    if (!currentEntry.hot_thought) {
       alert("System Error: 'Hot Thought' is required for the archive.");
       return;
     }
     const exists = entries.find(e => e.id === currentEntry.id);
-    const updatedEntry = { ...currentEntry, oracleAudit: oracleResponse || currentEntry.oracleAudit };
+    const updatedEntry = { ...currentEntry, oracle_audit: oracleResponse || currentEntry.oracle_audit };
     const updatedList = exists 
       ? entries.map(e => e.id === currentEntry.id ? updatedEntry : e)
       : [updatedEntry, ...entries];
@@ -128,12 +128,12 @@ export default function App() {
     const payload = `
 FORENSIC AUDIT REQUEST:
 1. Situation: ${currentEntry.situation}
-2. Reaction: ${currentEntry.reactionEmotion} (${currentEntry.intensityBefore}%)
-3. Hot Thought: ${currentEntry.hotThought}
+2. Reaction: ${currentEntry.reaction_emotion} (${currentEntry.intensity_before}%)
+3. Hot Thought: ${currentEntry.hot_thought}
 4. Distortions: ${currentEntry.distortions.join(', ')}
-5. Evidence For: ${currentEntry.evidenceFor}
-6. Evidence Against: ${currentEntry.evidenceAgainst}
-7. Balanced Alternative: ${currentEntry.balancedThought}
+5. Evidence For: ${currentEntry.evidence_for}
+6. Evidence Against: ${currentEntry.evidence_against}
+7. Balanced Alternative: ${currentEntry.balanced_thought}
 8. Learning: ${currentEntry.learning}
 `;
 
@@ -141,12 +141,12 @@ FORENSIC AUDIT REQUEST:
       const response = await fetch(CLOUD_FUNCTION_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_text: payload, user_id: 'Odelis' })
+        body: JSON.stringify({ chat_text: payload, user_id: 'Architect' })
       });
       const data = await response.json();
-      setOracleResponse(data.reply || "Record processed. No drift detected.");
+      setOracleResponse(data.reply || "Record processed. Epistemic fidelity verified.");
     } catch (err) {
-      setOracleResponse("ARCHIVAL NOTE: External link static. Reviewing locally: Acknowledge the physical substrate first. Pain is a hardware alarm, not a failure of character. Ensure your evidence against is fact-based.");
+      setOracleResponse("ARCHIVAL NOTE: External link static. Reviewing locally: Distinguish between feelings and facts. Thoughts are data points, not verdicts. Search for the middle ground.");
     } finally {
       setIsAuditing(false);
     }
@@ -161,15 +161,15 @@ FORENSIC AUDIT REQUEST:
       content += `[AUDIT_ENTRY_${entries.length - i}]\n`;
       content += `TIMESTAMP: ${e.timestamp}\n`;
       content += `1. SITUATION: ${e.situation}\n`;
-      content += `2. REACTION: ${e.reactionEmotion} (Initial: ${e.intensityBefore}%)\n`;
-      content += `3. HOT THOUGHT: ${e.hotThought}\n`;
+      content += `2. REACTION: ${e.reaction_emotion} (Initial: ${e.intensity_before}%)\n`;
+      content += `3. HOT THOUGHT: ${e.hot_thought}\n`;
       content += `   DISTORTIONS: ${e.distortions.join(', ')}\n`;
-      content += `4. EVIDENCE FOR: ${e.evidenceFor}\n`;
-      content += `5. EVIDENCE AGAINST: ${e.evidenceAgainst}\n`;
-      content += `6. BALANCED THOUGHT: ${e.balancedThought}\n`;
-      content += `7. OUTCOME: ${e.intensityAfter}% // ${e.learning}\n`;
-      if (e.oracleAudit) {
-        content += `\nORACLE AUDIT:\n${e.oracleAudit}\n`;
+      content += `4. EVIDENCE FOR: ${e.evidence_for}\n`;
+      content += `5. EVIDENCE AGAINST: ${e.evidence_against}\n`;
+      content += `6. BALANCED THOUGHT: ${e.balanced_thought}\n`;
+      content += `7. OUTCOME: ${e.intensity_after}% // ${e.learning}\n`;
+      if (e.oracle_audit) {
+        content += `\nORACLE AUDIT:\n${e.oracle_audit}\n`;
       }
       content += `------------------------------------------------\n\n`;
     });
@@ -222,7 +222,7 @@ FORENSIC AUDIT REQUEST:
             <div className="flex justify-between items-end border-b border-white/5 pb-4">
               <div>
                 <h2 className="text-xs font-black opacity-50 uppercase tracking-[0.2em] mb-1 italic">Archive Buffer</h2>
-                <p className="text-[10px] mono opacity-40">{entries.length} thought records detected.</p>
+                <p className="text-[10px] mono opacity-40">{entries.length} records detected.</p>
               </div>
               <div className="flex gap-2">
                 <button onClick={downloadArchive} className={`p-2 border ${theme.border} rounded-lg hover:bg-white/5 transition`} title="Download Full Archive"><Download size={16} /></button>
@@ -236,7 +236,7 @@ FORENSIC AUDIT REQUEST:
                 <div key={e.id} onClick={() => { setCurrentEntry(e); setActiveTab('viewer'); }} className={`border ${theme.border} p-4 rounded-xl flex justify-between items-center cursor-pointer group hover:bg-white/5 transition`}>
                   <div className="flex-1">
                     <div className="text-[9px] mono opacity-40 mb-1">{e.timestamp}</div>
-                    <h3 className="text-base font-bold uppercase tracking-tight line-clamp-1 italic">"{e.hotThought}"</h3>
+                    <h3 className="text-base font-bold uppercase tracking-tight line-clamp-1 italic">"{e.hot_thought}"</h3>
                   </div>
                   <ChevronRight size={18} className="opacity-20 group-hover:opacity-100 transition-all" />
                 </div>
@@ -251,27 +251,27 @@ FORENSIC AUDIT REQUEST:
           <div className="flex-1 flex flex-col p-0 overflow-hidden">
             <div className="px-8 md:px-12 pt-8 pb-4 flex justify-between items-center">
               <button onClick={() => setActiveTab('dashboard')} className="text-[10px] font-black opacity-50 hover:opacity-100 flex items-center gap-2 transition italic uppercase"><ArrowLeft size={14} /> Back to Archive</button>
-              <span className={`text-xs font-black italic uppercase tracking-widest ${theme.accent}`}>Archival Processing</span>
+              <span className={`text-xs font-black italic uppercase tracking-widest ${theme.accent}`}>Active Processing</span>
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-10 px-8 md:px-12 pb-32 custom-scrollbar">
               <section className="space-y-2">
                 <label className="text-[10px] font-black uppercase opacity-50 tracking-[0.2em]">1. Situation (Trigger)</label>
-                <textarea value={currentEntry.situation} onChange={(e) => setCurrentEntry({...currentEntry, situation: e.target.value})} className={`w-full ${theme.input} border rounded-xl p-4 text-base focus:ring-1 focus:ring-cyan-500 outline-none transition h-28 resize-none`} placeholder="What happened? Where were you?"/>
+                <textarea value={currentEntry.situation} onChange={(e) => setCurrentEntry({...currentEntry, situation: e.target.value})} className={`w-full ${theme.input} border rounded-xl p-4 text-base focus:ring-1 focus:ring-cyan-500 outline-none transition h-28 resize-none leading-relaxed`} placeholder="Describe the event, memory, or image that triggered the thought..."/>
               </section>
 
               <div className="grid md:grid-cols-2 gap-8">
                 <section className="space-y-2">
                   <label className="text-[10px] font-black uppercase opacity-50 tracking-[0.2em]">2. Initial Reaction</label>
-                  <input value={currentEntry.reactionEmotion} onChange={(e) => setCurrentEntry({...currentEntry, reactionEmotion: e.target.value})} className={`w-full ${theme.input} border rounded-xl p-4 text-base focus:ring-1 focus:ring-cyan-500 outline-none transition`} placeholder="Emotions / sensations..."/>
+                  <input value={currentEntry.reaction_emotion} onChange={(e) => setCurrentEntry({...currentEntry, reaction_emotion: e.target.value})} className={`w-full ${theme.input} border rounded-xl p-4 text-base focus:ring-1 focus:ring-cyan-500 outline-none transition`} placeholder="How did you feel emotionally and physically?"/>
                   <div className="py-4">
-                    <label className="text-[9px] font-bold opacity-30 mb-2 block uppercase italic tracking-widest">Intensity: {currentEntry.intensityBefore}%</label>
-                    <input type="range" value={currentEntry.intensityBefore} onChange={(e) => setCurrentEntry({...currentEntry, intensityBefore: parseInt(e.target.value)})} className="custom-range w-full" />
+                    <label className="text-[9px] font-bold opacity-30 mb-2 block uppercase italic tracking-widest">Initial Intensity: {currentEntry.intensity_before}%</label>
+                    <input type="range" value={currentEntry.intensity_before} onChange={(e) => setCurrentEntry({...currentEntry, intensity_before: parseInt(e.target.value)})} className="custom-range w-full" />
                   </div>
                 </section>
                 <section className="bg-red-950/10 p-6 rounded-2xl border border-red-900/20 space-y-4">
                   <label className="text-[10px] font-black uppercase text-red-500 tracking-[0.2em] italic underline">3. THE HOT THOUGHT</label>
-                  <textarea value={currentEntry.hotThought} onChange={(e) => setCurrentEntry({...currentEntry, hotThought: e.target.value})} className={`w-full bg-black/40 border border-red-900/30 p-4 text-xl font-black text-red-500 outline-none italic uppercase tracking-tighter rounded-xl focus:border-red-500`} placeholder="The loudest unhelpful thought..." rows={2}/>
+                  <textarea value={currentEntry.hot_thought} onChange={(e) => setCurrentEntry({...currentEntry, hot_thought: e.target.value})} className={`w-full bg-black/40 border border-red-900/30 p-4 text-xl font-black text-red-500 outline-none italic uppercase tracking-tighter rounded-xl focus:border-red-500 leading-tight`} placeholder="Identify the negative automatic thought..." rows={2}/>
                   <div className="flex flex-wrap gap-1.5 pt-2">
                     {DISTORTIONS.map(d => (
                       <button key={d.id} onClick={() => {
@@ -286,39 +286,39 @@ FORENSIC AUDIT REQUEST:
               <div className="grid md:grid-cols-2 gap-8">
                 <section className="space-y-2">
                   <label className="text-[10px] font-black uppercase opacity-50 tracking-[0.2em]">4. Evidence For</label>
-                  <textarea value={currentEntry.evidenceFor} onChange={(e) => setCurrentEntry({...currentEntry, evidenceFor: e.target.value})} className={`w-full ${theme.input} border rounded-xl p-4 text-base h-40 italic resize-none leading-relaxed`} placeholder="Facts supporting the thought..." />
+                  <textarea value={currentEntry.evidence_for} onChange={(e) => setCurrentEntry({...currentEntry, evidence_for: e.target.value})} className={`w-full ${theme.input} border rounded-xl p-4 text-base h-40 italic resize-none leading-relaxed`} placeholder="Factual evidence that supports the hot thought..." />
                 </section>
                 <section className="space-y-2">
                   <label className="text-[10px] font-black uppercase opacity-50 tracking-[0.2em]">5. Evidence Against</label>
-                  <textarea value={currentEntry.evidenceAgainst} onChange={(e) => setCurrentEntry({...currentEntry, evidenceAgainst: e.target.value})} className={`w-full ${theme.input} border rounded-xl p-4 text-base h-40 italic resize-none leading-relaxed`} placeholder="Facts opposing the thought..." />
+                  <textarea value={currentEntry.evidence_against} onChange={(e) => setCurrentEntry({...currentEntry, evidence_against: e.target.value})} className={`w-full ${theme.input} border rounded-xl p-4 text-base h-40 italic resize-none leading-relaxed`} placeholder="Factual evidence that contradicts the hot thought..." />
                 </section>
               </div>
 
               <section className="space-y-4 bg-cyan-950/10 p-6 rounded-2xl border border-cyan-900/20">
                 <label className="text-[10px] font-black uppercase text-cyan-400 tracking-[0.2em] italic underline">6. Balanced Alternative Thought</label>
-                <textarea value={currentEntry.balancedThought} onChange={(e) => setCurrentEntry({...currentEntry, balancedThought: e.target.value})} className={`w-full bg-black/40 border border-cyan-900/30 p-4 text-lg italic text-cyan-100 rounded-xl outline-none focus:border-cyan-600 leading-relaxed`} rows={3} placeholder="A realistic, grounded assessment..."/>
+                <textarea value={currentEntry.balanced_thought} onChange={(e) => setCurrentEntry({...currentEntry, balanced_thought: e.target.value})} className={`w-full bg-black/40 border border-cyan-900/30 p-4 text-lg italic text-cyan-100 rounded-xl outline-none focus:border-cyan-600 leading-relaxed`} rows={3} placeholder="A realistic, grounded assessment based on all evidence..."/>
               </section>
 
               <section className="grid md:grid-cols-2 gap-8 items-end">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase opacity-50 tracking-[0.2em]">7. Outcome / Learning</label>
-                  <textarea value={currentEntry.learning} onChange={(e) => setCurrentEntry({...currentEntry, learning: e.target.value})} className={`w-full ${theme.input} border rounded-xl p-4 text-base focus:ring-1 focus:ring-cyan-500 h-28 resize-none`} placeholder="What can I learn from this reframing?"/>
+                  <textarea value={currentEntry.learning} onChange={(e) => setCurrentEntry({...currentEntry, learning: e.target.value})} className={`w-full ${theme.input} border rounded-xl p-4 text-base focus:ring-1 focus:ring-cyan-500 h-28 resize-none leading-relaxed`} placeholder="What can be learned to handle similar situations in the future?"/>
                 </div>
                 <div className="bg-black/20 p-6 rounded-xl border border-white/5 space-y-4">
-                   <label className="text-[10px] font-black uppercase opacity-50 tracking-[0.2em]">New Intensity: {currentEntry.intensityAfter}%</label>
-                   <div className="py-2"><input type="range" value={currentEntry.intensityAfter} onChange={(e) => setCurrentEntry({...currentEntry, intensityAfter: parseInt(e.target.value)})} className="custom-range w-full" /></div>
+                   <label className="text-[10px] font-black uppercase opacity-50 tracking-[0.2em]">New Intensity: {currentEntry.intensity_after}%</label>
+                   <div className="py-2"><input type="range" value={currentEntry.intensity_after} onChange={(e) => setCurrentEntry({...currentEntry, intensity_after: parseInt(e.target.value)})} className="custom-range w-full" /></div>
                 </div>
               </section>
 
-              {(oracleResponse || currentEntry.oracleAudit) && (
+              {(oracleResponse || currentEntry.oracle_audit) && (
                 <div className="bg-cyan-950/30 border-l-4 border-cyan-500 p-8 rounded-r-2xl shadow-xl animate-in zoom-in-95 mt-4">
                   <div className="flex justify-between items-center mb-4 border-b border-white/5 pb-2">
                     <span className="text-[10px] font-black uppercase text-cyan-400 flex items-center gap-2 italic">
-                      <Activity size={14} className="animate-pulse" /> Archival Log
+                      <Activity size={14} className="animate-pulse" /> Archival Audit
                     </span>
                     <button onClick={() => setOracleResponse("")}><X size={18} /></button>
                   </div>
-                  <OracleTyping text={oracleResponse || currentEntry.oracleAudit} />
+                  <OracleTyping text={oracleResponse || currentEntry.oracle_audit} />
                 </div>
               )}
             </div>
@@ -326,7 +326,7 @@ FORENSIC AUDIT REQUEST:
             {/* ACTIONS */}
             <div className={`p-8 border-t ${theme.border} flex gap-4 mt-auto bg-inherit shadow-2xl`}>
               <button onClick={handleSave} className={`flex-1 ${theme.btn} font-black py-5 rounded-xl uppercase tracking-[0.3em] transition-all flex justify-center items-center gap-3 text-white shadow-lg active:scale-95`}>
-                <Save size={20} /> Save Archive
+                <Save size={20} /> Commit to Archive
               </button>
               <button onClick={processThoughtRecord} disabled={isAuditing} className={`flex-1 bg-black border-2 border-cyan-900 text-cyan-400 font-black py-5 rounded-xl uppercase tracking-[0.3em] hover:bg-cyan-950/30 transition-all flex justify-center items-center gap-3 disabled:opacity-50 active:scale-95`}>
                 {isAuditing ? <RefreshCw size={20} className="animate-spin" /> : <Zap size={20} />} Process Record
@@ -343,8 +343,8 @@ FORENSIC AUDIT REQUEST:
              <div className="max-w-3xl mx-auto space-y-12">
                 <div className="border-b border-white/5 pb-6 flex justify-between items-end">
                   <div>
-                    <div className="text-[10px] mono opacity-40 mb-2 uppercase tracking-widest">{currentEntry.timestamp} // NODE SUMMARY</div>
-                    <h2 className="text-4xl font-black italic uppercase tracking-tighter">Forensic Report</h2>
+                    <div className="text-[10px] mono opacity-40 mb-2 uppercase tracking-widest">{currentEntry.timestamp} // RECORD SUMMARY</div>
+                    <h2 className="text-4xl font-black italic uppercase tracking-tighter">Forensic Audit</h2>
                   </div>
                   <button onClick={() => handleEdit(currentEntry)} className="p-3 border border-white/10 rounded-xl opacity-60 hover:opacity-100 hover:bg-white/5 transition flex items-center gap-2 text-xs font-black uppercase">
                     <Edit3 size={18}/> Edit
@@ -359,7 +359,7 @@ FORENSIC AUDIT REQUEST:
 
                   <section className="bg-red-950/10 p-8 rounded-3xl border border-red-900/20 shadow-xl">
                     <h4 className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-3 italic">2. Hot Thought</h4>
-                    <p className="text-2xl font-black italic tracking-tight uppercase leading-tight">"{currentEntry.hotThought}"</p>
+                    <p className="text-2xl font-black italic tracking-tight uppercase leading-tight">"{currentEntry.hot_thought}"</p>
                     <div className="mt-4 flex flex-wrap gap-2">
                       {currentEntry.distortions.map(id => <span key={id} className="text-[9px] bg-red-900/30 text-red-100 px-3 py-1 rounded border border-red-800/50 font-black uppercase">{id}</span>)}
                     </div>
@@ -368,33 +368,33 @@ FORENSIC AUDIT REQUEST:
                   <div className="grid md:grid-cols-2 gap-8 pl-6 border-l border-white/10">
                     <section className="space-y-2">
                       <h4 className="text-[10px] font-black opacity-40 uppercase tracking-widest italic">Evidence For</h4>
-                      <p className="text-sm italic leading-relaxed opacity-70 whitespace-pre-wrap">{currentEntry.evidenceFor}</p>
+                      <p className="text-sm italic leading-relaxed opacity-70 whitespace-pre-wrap">{currentEntry.evidence_for}</p>
                     </section>
                     <section className="space-y-2">
                       <h4 className="text-[10px] font-black opacity-40 uppercase tracking-widest italic">Evidence Against</h4>
-                      <p className="text-sm italic leading-relaxed opacity-70 whitespace-pre-wrap">{currentEntry.evidenceAgainst}</p>
+                      <p className="text-sm italic leading-relaxed opacity-70 whitespace-pre-wrap">{currentEntry.evidence_against}</p>
                     </section>
                   </div>
 
                   <section className="bg-cyan-950/10 p-8 rounded-3xl border border-cyan-900/20 shadow-inner">
                     <h4 className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-3 italic underline">3. Balanced Alternative</h4>
-                    <p className="text-slate-100 text-xl leading-relaxed italic font-serif">"{currentEntry.balancedThought}"</p>
+                    <p className="text-slate-100 text-xl leading-relaxed italic font-serif">"{currentEntry.balanced_thought}"</p>
                     <div className="mt-6 flex items-center gap-4">
-                      <div className="text-[10px] font-black text-cyan-700 bg-black/40 px-3 py-1.5 rounded border border-cyan-900 inline-block uppercase italic">Result: {currentEntry.intensityAfter}%</div>
-                      <span className="text-[10px] opacity-30 uppercase italic font-black">Pre: {currentEntry.intensityBefore}%</span>
+                      <div className="text-[10px] font-black text-cyan-700 bg-black/40 px-3 py-1.5 rounded border border-cyan-900 inline-block uppercase italic">Resulting Intensity: {currentEntry.intensity_after}%</div>
+                      <span className="text-[10px] opacity-30 uppercase italic font-black">Pre: {currentEntry.intensity_before}%</span>
                     </div>
                   </section>
 
-                  {currentEntry.oracleAudit && (
+                  {currentEntry.oracle_audit && (
                     <section className="bg-white/5 p-8 rounded-3xl border border-white/10 space-y-4">
-                       <h4 className="text-[10px] font-black opacity-40 uppercase tracking-widest italic">Oracle Output</h4>
-                       <div className="text-base italic leading-relaxed opacity-90 font-serif whitespace-pre-wrap">{currentEntry.oracleAudit}</div>
+                       <h4 className="text-[10px] font-black opacity-40 uppercase tracking-widest italic">Archival Assistant Output</h4>
+                       <div className="text-base italic leading-relaxed opacity-90 font-serif whitespace-pre-wrap">{currentEntry.oracle_audit}</div>
                     </section>
                   )}
                 </div>
 
-                <button onClick={() => handleEdit(currentEntry)} className={`w-full py-5 bg-cyan-600 hover:bg-cyan-500 text-white font-black rounded-xl shadow-xl uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-3 mt-12`}>
-                  <RefreshCw size={20} /> Re-Process Signal
+                <button onClick={() => handleEdit(currentEntry)} className={`w-full py-5 bg-cyan-600 hover:bg-cyan-500 text-white font-black rounded-xl shadow-xl uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-3 mt-12 shadow-cyan-900/20`}>
+                  <RefreshCw size={20} /> Re-Process Audit
                 </button>
              </div>
           </div>
@@ -403,12 +403,12 @@ FORENSIC AUDIT REQUEST:
         {/* REALITY CHECK */}
         {activeTab === 'reality-guide' && (
           <div className="flex-1 p-8 md:p-12 space-y-12 overflow-y-auto animate-in fade-in duration-500 pb-32">
-             <div className="border-b border-white/5 pb-4"><h2 className="text-2xl font-black uppercase tracking-tighter italic">Reality Check</h2></div>
+             <div className="border-b border-white/5 pb-4"><h2 className="text-2xl font-black uppercase tracking-tighter italic">Reality Testing Protocol</h2></div>
              <div className="grid md:grid-cols-3 gap-6">
                 {[
-                  { n: 1, t: "Identify the Distortion", d: "Is the thought a fact? Hardware failure (pain/fatigue) != Identity failure." },
-                  { n: 2, t: "The Outsider Audit", d: "Would you validate a friend's 'Idiot' status in this exact situation? Why is your standard different?" },
-                  { n: 3, t: "The Safety Plan", d: "If the worst-case scenario were true, run the Safety Plan. Call Ian or 988." }
+                  { n: 1, t: "Fact vs. Feeling", d: "Is your thought a provable fact or an interpretation? What would an objective observer record as happening?" },
+                  { n: 2, t: "The Double Standard", d: "If a friend had this thought in this exact situation, what would you say to them? Why is your standard for yourself different?" },
+                  { n: 3, t: "The Utility Test", d: "Does holding this thought help you solve the problem or achieve your goals? If not, what thought would be more useful?" }
                 ].map(step => (
                   <div key={step.n} className="bg-black/20 p-8 rounded-3xl border border-white/5 group hover:border-cyan-900 transition-all">
                     <div className="w-10 h-10 rounded-2xl bg-cyan-950 text-cyan-400 border border-cyan-900 flex items-center justify-center font-black mb-4 italic group-hover:shadow-[0_0_15px_rgba(34,211,238,0.2)]">{step.n}</div>
@@ -417,20 +417,40 @@ FORENSIC AUDIT REQUEST:
                   </div>
                 ))}
              </div>
-             <div className="bg-[#1a1a1e]/40 p-8 rounded-3xl border border-white/5 space-y-8">
-                <h3 className="text-[10px] font-black opacity-50 uppercase tracking-[0.3em] mb-4 italic border-b border-white/5 pb-2">Archival Reminders</h3>
+             <div className="bg-[#1a1a1e]/40 p-8 rounded-3xl border border-white/5 space-y-8 shadow-2xl">
+                <h3 className="text-[10px] font-black opacity-50 uppercase tracking-[0.3em] mb-4 italic border-b border-white/5 pb-2">CBT Fundamentals</h3>
                 <div className="grid md:grid-cols-3 gap-8 text-[11px]">
-                  <div className="space-y-1"><p className="font-bold opacity-80 uppercase italic">Sycophancy Warning</p><p className="opacity-40 italic font-serif">Warmth increases sycophancy (Nature, 2026). Use this interface for friction, not comfort.</p></div>
-                  <div className="space-y-1"><p className="font-bold opacity-80 uppercase italic">The Archival Mandate</p><p className="opacity-40 italic font-serif">I am a mirror, not a mentor. You are the Architect of your recovery.</p></div>
-                  <div className="space-y-1"><p className="font-bold opacity-80 uppercase italic">Hardware Protocol</p><p className="opacity-40 italic font-serif">Eat. Sleep. Manage the physical alarms. The body is the engine.</p></div>
+                  <div className="space-y-1">
+                    <p className="font-bold opacity-80 uppercase italic">Thoughts are not Facts</p>
+                    <p className="opacity-40 italic font-serif">Treat your thoughts as data points to be audited, not as absolute truth or biological imperatives.</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="font-bold opacity-80 uppercase italic">Look for the Middle</p>
+                    <p className="opacity-40 italic font-serif">Distortions often live in the extremes (All-or-Nothing). Search for the gray areas between 'perfect' and 'failure'.</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="font-bold opacity-80 uppercase italic">Check your Substrate</p>
+                    <p className="opacity-40 italic font-serif">Basic needs (sleep, nutrition, physical comfort) heavily influence your cognitive accuracy. Tend to the vessel first.</p>
+                  </div>
                 </div>
              </div>
+
+             <div className="pt-6">
+                <button 
+                  onClick={handleNewAudit}
+                  className="w-full py-5 bg-cyan-600 hover:bg-cyan-500 text-white font-black rounded-xl shadow-xl shadow-cyan-900/20 uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95"
+                >
+                  Initialize New Audit
+                </button>
+              </div>
           </div>
         )}
 
         <footer className="mt-auto pt-10 pb-10 text-center space-y-6 border-t border-white/5 bg-black/10">
-          <div className="opacity-10 text-[9px] uppercase font-mono tracking-[0.7em] italic">// ANCHOR: IO-V2.9 // STATUS: SECURE // &lt;8&gt;</div>
-          <div className="p-4 bg-black/40 max-w-xl mx-auto rounded-2xl border border-white/5"><p className="text-[10px] opacity-30 italic leading-relaxed">Medical Disclaimer: This is an archival tool, not clinical advice. If in crisis, call 988 (USA).</p></div>
+          <div className="opacity-10 text-[9px] uppercase font-mono tracking-[0.7em] italic">// ANCHOR: IO-V3.0 // STATUS: SECURE // &lt;8&gt;</div>
+          <div className="p-4 bg-black/40 max-w-xl mx-auto rounded-2xl border border-white/5">
+            <p className="text-[10px] opacity-30 italic leading-relaxed uppercase tracking-tighter">Medical Disclaimer: This application is an archival tool for cognitive processing. It is not clinical advice. If you are in crisis, contact emergency services or a crisis line (e.g., 988 USA) immediately.</p>
+          </div>
         </footer>
 
       </div>
