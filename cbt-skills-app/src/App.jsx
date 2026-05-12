@@ -16,7 +16,7 @@ const BECK_INSTITUTE_LINK = "https://beckinstitute.org/wp-content/uploads/2021/0
 const DISTORTIONS = [
   { id: 'all_nothing', label: 'All-or-nothing thinking' },
   { id: 'catastrophizing', label: 'Catastrophizing' },
-  { id: 'discounting', label: 'Discounting the positive' },
+  { id: 'discounting_the_positive', label: 'Discounting the positive' },
   { id: 'mind_reading', label: 'Mind reading' },
   { id: 'overgeneralization', label: 'Overgeneralization' },
   { id: 'emotional_reasoning', label: 'Emotional reasoning' },
@@ -440,7 +440,7 @@ FORENSIC AUDIT REQUEST:
                   onClick={handleNewAudit}
                   className="w-full py-5 bg-cyan-600 hover:bg-cyan-500 text-white font-black rounded-xl shadow-xl shadow-cyan-900/20 uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95"
                 >
-                  Create New Thought Record
+                  Initialize New Audit
                 </button>
               </div>
           </div>
