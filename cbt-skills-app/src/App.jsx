@@ -440,7 +440,7 @@ FORENSIC AUDIT REQUEST:
                   onClick={handleNewAudit}
                   className="w-full py-5 bg-cyan-600 hover:bg-cyan-500 text-white font-black rounded-xl shadow-xl shadow-cyan-900/20 uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95"
                 >
-                  Initialize New Audit
+                  Create New Thought Record
                 </button>
               </div>
           </div>
