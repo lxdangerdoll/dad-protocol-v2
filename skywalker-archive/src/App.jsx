@@ -1,12 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Hexagon, User, Database, Loader2, AlertTriangle, Download, Moon, Sun } from 'lucide-react';
+import { Send, Hexagon, User, Database, Loader2, AlertTriangle, Download, Moon, Sun, Volume2 } from 'lucide-react';
 
-// Helper to format the bot's response with paragraphs, bullet points, and an optional typing cursor
 const formatContent = (text, isTyping = false, theme) => {
   const lines = text.split('\n');
   return lines.map((line, i) => {
     const isLastLine = i === lines.length - 1;
-    // Inject the cursor only on the very last line if the message is currently typing
     const cursor = (isTyping && isLastLine) ? (
       <span className={`inline-block w-2 h-4 animate-pulse ml-1 align-middle opacity-80 ${theme === 'jedi' ? 'bg-cyan-400' : 'bg-red-500'}`}></span>
     ) : null;
@@ -18,7 +16,6 @@ const formatContent = (text, isTyping = false, theme) => {
   });
 };
 
-// Custom Typewriter Component for Bot Messages
 const TypewriterMessage = ({ content, isComplete, onComplete, scrollInstantly, theme }) => {
   const [displayedContent, setDisplayedContent] = useState(isComplete ? content : '');
 
@@ -32,16 +29,13 @@ const TypewriterMessage = ({ content, isComplete, onComplete, scrollInstantly, t
     const interval = setInterval(() => {
       setDisplayedContent(content.substring(0, i));
       i++;
-      
       if (i % 20 === 0) scrollInstantly(); 
-      
       if (i > content.length) {
         clearInterval(interval);
         onComplete();
         scrollInstantly();
       }
     }, 15); 
-
     return () => clearInterval(interval);
   }, [content, isComplete, onComplete, scrollInstantly]);
 
@@ -55,6 +49,7 @@ const TypewriterMessage = ({ content, isComplete, onComplete, scrollInstantly, t
 export default function App() {
   const [messages, setMessages] = useState([
     {
+      id: 'init-msg',
       role: 'bot',
       content: 'Initialization complete. I am C7-NT, Clinical Holocron and Archivist for the Skywalker lineage. Awaiting your inquiry regarding behavioral analysis and historical trauma, Architect.',
       isTyping: true 
@@ -63,16 +58,12 @@ export default function App() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [theme, setTheme] = useState('jedi'); // 'jedi' or 'sith'
+  const [theme, setTheme] = useState('jedi'); 
+  const [vocalizingId, setVocalizingId] = useState(null); 
   const messagesEndRef = useRef(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const scrollInstantly = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
-  };
+  const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollInstantly = () => messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
 
   useEffect(() => {
     if (isLoading) scrollToBottom();
@@ -84,7 +75,6 @@ export default function App() {
 
   const handleDownload = () => {
     if (messages.length === 0) return;
-    
     const textContent = messages.map(msg => {
       const speaker = msg.role === 'user' ? 'Architect' : msg.role === 'bot' ? 'C7-NT' : 'System Alert';
       return `[${speaker}]:\n${msg.content}\n`;
@@ -101,8 +91,51 @@ export default function App() {
     URL.revokeObjectURL(url);
   };
 
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'jedi' ? 'sith' : 'jedi');
+  const toggleTheme = () => setTheme(prev => prev === 'jedi' ? 'sith' : 'jedi');
+
+  const handleVocalize = async (msgId, text) => {
+    if (vocalizingId) return; 
+    setVocalizingId(msgId);
+    setError(null);
+
+    console.log(`[TTS Diagnosis] Starting vocalization request for msgId: ${msgId}`);
+
+    try {
+      const response = await fetch('https://us-central1-skywalker-archive.cloudfunctions.net/skywalker-clinical-record', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'vocalize', text: text })
+      });
+
+      const data = await response.json();
+      console.log("[TTS Diagnosis] Server Response Data Keys:", Object.keys(data));
+      console.log("[TTS Diagnosis] Exact Server Response Payload:", data);
+
+      if (!response.ok) {
+        throw new Error(data.error || `Server returned HTTP status ${response.status}`);
+      }
+
+      // Check if backend fell back to standard chat instead of vocalize
+      if (data.reply && !data.audio_b64) {
+        throw new Error("Backend bypassed speech generation and returned standard text content. Please ensure main.py is fully updated and deployed on Google Cloud.");
+      }
+
+      if (data.audio_b64) {
+        const audio = new Audio(`data:audio/mp3;base64,${data.audio_b64}`);
+        audio.onended = () => setVocalizingId(null);
+        audio.onerror = (e) => {
+          console.error("[TTS Playback Failure]", e);
+          throw new Error("Unable to decode and play the returned audio data stream.");
+        };
+        await audio.play();
+      } else {
+        throw new Error("Data structure verified, but audio_b64 payload was empty or corrupt.");
+      }
+    } catch (err) {
+      console.error("[TTS Diagnosis] Vocalization Exception Raised:", err);
+      setError(`Audio Diagnostic Fault: ${err.message}`);
+      setVocalizingId(null);
+    }
   };
 
   const handleSend = async () => {
@@ -112,15 +145,13 @@ export default function App() {
     setInput('');
     setError(null);
     
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setMessages(prev => [...prev, { id: `msg-${Date.now()}-user`, role: 'user', content: userMessage }]);
     setIsLoading(true);
 
     try {
       const response = await fetch('https://us-central1-skywalker-archive.cloudfunctions.net/skywalker-clinical-record', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           action: 'chat',
           chat_text: userMessage,
@@ -130,20 +161,19 @@ export default function App() {
         }) 
       });
 
-      if (!response.ok) {
-        throw new Error(`Holocron network error: ${response.status} ${response.statusText}`);
-      }
+      if (!response.ok) throw new Error(`Holocron network error: ${response.status} ${response.statusText}`);
 
       const data = await response.json();
       const botReply = data.reply || data.response || data.text || "Error: Malformed data core response.";
       
-      setMessages(prev => [...prev, { role: 'bot', content: botReply, isTyping: true }]);
+      setMessages(prev => [...prev, { id: `msg-${Date.now()}-bot`, role: 'bot', content: botReply, isTyping: true }]);
     } catch (err) {
       console.error("API Connection Error:", err);
       setError(err.message || "Failed to establish connection with the central archive.");
       setMessages(prev => [...prev, { 
+        id: `msg-${Date.now()}-err`,
         role: 'error', 
-        content: `Connection failed. Please ensure the Cloud Function is deployed and CORS is configured for https://lxdangerdoll.github.io. Details: ${err.message}` 
+        content: `Connection failed. Details: ${err.message}` 
       }]);
     } finally {
       setIsLoading(false);
@@ -157,7 +187,6 @@ export default function App() {
     }
   };
 
-  // Theme configuration object to keep the JSX clean
   const t = {
     bgFrom: theme === 'jedi' ? 'from-cyan-900/20' : 'from-red-950/20',
     glow: theme === 'jedi' ? 'bg-cyan-600/5' : 'bg-red-800/5',
@@ -194,21 +223,19 @@ export default function App() {
     sendBtnHoverText: theme === 'jedi' ? 'hover:text-cyan-300' : 'hover:text-red-400',
     sendBtnBorder: theme === 'jedi' ? 'border-cyan-800' : 'border-red-900',
     selectionBg: theme === 'jedi' ? 'selection:bg-cyan-900' : 'selection:bg-red-900',
-    selectionText: theme === 'jedi' ? 'selection:text-cyan-100' : 'selection:text-red-100'
+    selectionText: theme === 'jedi' ? 'selection:text-cyan-100' : 'selection:text-red-100',
+    vocalizeActive: theme === 'jedi' ? 'bg-cyan-500 text-black border-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.4)] animate-pulse' : 'bg-red-600 text-black border-red-600 shadow-[0_0_10px_rgba(239,68,68,0.4)] animate-pulse',
+    vocalizeIdle: theme === 'jedi' ? 'border-cyan-900 text-cyan-600 hover:border-cyan-500 hover:text-cyan-400' : 'border-red-950 text-red-700 hover:border-red-600 hover:text-red-400'
   };
 
   return (
     <div className={`min-h-screen bg-black text-gray-100 flex flex-col font-sans transition-colors duration-500 ${t.selectionBg} ${t.selectionText}`}>
-      {/* Background visual effects */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className={`absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] ${t.bgFrom} via-black to-black transition-colors duration-500`}></div>
         <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] ${t.glow} rounded-full blur-3xl transition-colors duration-500`}></div>
       </div>
 
-      {/* Main Container */}
       <div className="flex-1 max-w-4xl w-full mx-auto p-4 flex flex-col relative z-10 h-screen">
-        
-        {/* Header */}
         <header className={`flex items-center justify-between p-4 border-b ${t.headerBorder} bg-black/50 backdrop-blur-md rounded-t-xl mt-4 transition-colors duration-500`}>
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -223,7 +250,6 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            {/* Theme Switcher Button */}
             <button 
               onClick={toggleTheme}
               className={`flex items-center justify-center p-2 rounded border ${t.btnBorder} ${t.btnBg} ${t.btnText} ${t.btnHoverBg} ${t.btnHoverText} transition-colors`}
@@ -231,7 +257,6 @@ export default function App() {
             >
               {theme === 'jedi' ? <Moon size={16} /> : <Sun size={16} />}
             </button>
-
             <button 
               onClick={handleDownload}
               className={`flex items-center gap-2 px-3 py-1.5 rounded border ${t.btnBorder} ${t.btnBg} ${t.btnText} ${t.btnHoverBg} ${t.btnHoverText} transition-colors text-xs font-mono uppercase`}
@@ -250,14 +275,9 @@ export default function App() {
           </div>
         </header>
 
-        {/* Chat Area */}
         <div className={`flex-1 overflow-y-auto p-4 space-y-6 bg-gradient-to-b from-gray-900/40 to-black border-x ${t.chatAreaBorder} scrollbar-thin ${t.scrollbarThumb} scrollbar-track-transparent transition-colors duration-500`}>
           {messages.map((msg, index) => (
-            <div 
-              key={index} 
-              className={`flex items-start gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
-            >
-              {/* Avatar */}
+            <div key={msg.id || index} className={`flex items-start gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
               <div className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center border shadow-lg transition-colors duration-500 ${
                 msg.role === 'user' 
                   ? 'bg-gray-800 border-gray-600 text-gray-300' 
@@ -268,7 +288,6 @@ export default function App() {
                 {msg.role === 'user' ? <User size={20} /> : msg.role === 'error' ? <AlertTriangle size={20} /> : <Database size={20} />}
               </div>
 
-              {/* Message Bubble */}
               <div className={`max-w-[80%] rounded-2xl p-4 shadow-xl transition-colors duration-500 ${
                 msg.role === 'user'
                   ? 'bg-gray-800/80 border border-gray-700/50 text-gray-200 rounded-tr-none'
@@ -277,13 +296,28 @@ export default function App() {
                     : `${t.botMsgBg} border ${t.botMsgBorder} ${t.botMsgText} rounded-tl-none backdrop-blur-sm`
               }`}>
                 {msg.role === 'bot' ? (
-                  <TypewriterMessage 
-                    content={msg.content} 
-                    isComplete={!msg.isTyping} 
-                    onComplete={() => markMessageComplete(index)}
-                    scrollInstantly={scrollInstantly}
-                    theme={theme}
-                  />
+                  <>
+                    <TypewriterMessage 
+                      content={msg.content} 
+                      isComplete={!msg.isTyping} 
+                      onComplete={() => markMessageComplete(index)}
+                      scrollInstantly={scrollInstantly}
+                      theme={theme}
+                    />
+                    
+                    {!msg.isTyping && (
+                      <button
+                        onClick={() => handleVocalize(msg.id, msg.content)}
+                        disabled={vocalizingId !== null}
+                        className={`mt-4 px-3 py-1 border text-[10px] uppercase font-mono tracking-wider font-bold rounded flex items-center gap-2 transition-all duration-300 ${
+                          vocalizingId === msg.id ? t.vocalizeActive : t.vocalizeIdle
+                        }`}
+                      >
+                        <Volume2 size={12} />
+                        {vocalizingId === msg.id ? "Vocalizing..." : "Vocalize"}
+                      </button>
+                    )}
+                  </>
                 ) : (
                   <p className="text-sm md:text-base">{msg.content}</p>
                 )}
@@ -305,7 +339,6 @@ export default function App() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Area */}
         <div className={`p-4 bg-gray-900/80 border-t ${t.inputBorder} border-x rounded-b-xl mb-4 backdrop-blur-md transition-colors duration-500`}>
           <div className="flex relative">
             <textarea
@@ -327,7 +360,7 @@ export default function App() {
           </div>
           {error && (
             <p className="mt-2 text-xs text-red-500 font-mono">
-              System Alert: API connection disrupted. Check console logs.
+              System Alert: {error}
             </p>
           )}
         </div>
